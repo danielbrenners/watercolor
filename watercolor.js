@@ -1,5 +1,6 @@
 const canvasSketch = require("canvas-sketch");
 const { lerp } = require("canvas-sketch-util/math");
+const random = require("canvas-sketch-util/random");
 
 const settings = {
   dimensions: [2048, 2048],
@@ -20,18 +21,50 @@ const sketch = () => {
     const warpPolygonPoints = (originalPoints) => {
       let newPoints = [];
       for (ptIndex = 0; ptIndex < originalPoints.length; ptIndex++) {
+        // get current and next point
         const currentPoint = originalPoints[ptIndex];
         const nextPoint =
           ptIndex < originalPoints.length - 1
             ? originalPoints[ptIndex + 1]
             : originalPoints[0];
 
+        // smaller edges should have less magnitude change
+        const edgeLength = Math.sqrt(
+          (nextPoint.position[0] - currentPoint.position[0]) *
+            (nextPoint.position[0] - currentPoint.position[0]) +
+            (nextPoint.position[1] - currentPoint.position[1]) *
+              (nextPoint.position[1] - currentPoint.position[1])
+        );
+
+        // parameters
+        const edgeLengthFactor = 0.004;
+        const magnitudeMean = 64;
+        const magnitudeStd = 10;
+        const divisionMean = 0.5;
+        const divisionStd = 0.2;
+        const angleMean =
+          ((ptIndex * 2 + 1) * 2 * Math.PI) / (originalPoints.length * 2);
+        const angleStd = 1;
+
+        // calculate random value
+        const magnitude =
+          Math.abs(random.gaussian(magnitudeMean, magnitudeStd)) *
+          edgeLength *
+          edgeLengthFactor;
+        const division = Math.abs(random.gaussian(divisionMean, divisionStd));
+        const angle = Math.abs(random.gaussian(angleMean, angleStd));
+
+        // get new point
         const midU =
-          lerp(currentPoint.position[0], nextPoint.position[0], 0.5) + 10;
+          lerp(currentPoint.position[0], nextPoint.position[0], division) +
+          magnitude * Math.cos(angle);
         const midV =
-          lerp(currentPoint.position[1], nextPoint.position[1], 0.5) + 100;
+          lerp(currentPoint.position[1], nextPoint.position[1], division) +
+          magnitude * Math.sin(angle);
+        Math.sin((ptIndex * 2 * Math.PI) / (originalPoints.length * 2));
         const midPoint = [midU, midV];
 
+        // add to new array
         newPoints.push({
           position: [currentPoint.position[0], currentPoint.position[1]],
         });
@@ -40,11 +73,18 @@ const sketch = () => {
       return newPoints;
     };
 
-    points = getPolygonPoints(4, width / 2, height / 2, 500);
-    const warpedPoints = warpPolygonPoints(points);
+    const getBlob = (iterations) => {
+      let points = getPolygonPoints(10, width / 2, height / 2, 500);
+      for (i = 0; i < iterations; i++) {
+        points = warpPolygonPoints(points);
+      }
+      return points;
+    };
+
+    const blobPoints = getBlob(6);
 
     context.beginPath();
-    warpedPoints.forEach((point) => {
+    blobPoints.forEach((point) => {
       context.lineTo(point.position[0], point.position[1]);
     });
 
