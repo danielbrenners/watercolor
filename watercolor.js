@@ -10,17 +10,22 @@ const sketch = () => {
   return ({ context, width, height }) => {
     const getPolygonPoints = (n, x, y, size) => {
       let points = [];
-      for (ptIndex = 0; ptIndex < n; ptIndex++) {
+      for (let ptIndex = 0; ptIndex < n; ptIndex++) {
+        const edgeVarianceMean = 0.25;
+        const edgeVarianceStd = 0.1;
+        const edgeVariance = Math.abs(
+          random.gaussian(edgeVarianceMean, edgeVarianceStd)
+        );
         let u = x + size * Math.cos((ptIndex * 2 * Math.PI) / n);
         let v = y + size * Math.sin((ptIndex * 2 * Math.PI) / n);
-        points.push({ position: [u, v] });
+        points.push({ position: [u, v], variance: edgeVariance });
       }
       return points;
     };
 
-    const warpPolygonPoints = (originalPoints) => {
+    const getWarpedPolygonPoints = (originalPoints) => {
       let newPoints = [];
-      for (ptIndex = 0; ptIndex < originalPoints.length; ptIndex++) {
+      for (let ptIndex = 0; ptIndex < originalPoints.length; ptIndex++) {
         // get current and next point
         const currentPoint = originalPoints[ptIndex];
         const nextPoint =
@@ -38,19 +43,22 @@ const sketch = () => {
 
         // parameters
         const edgeLengthFactor = 0.004;
+        const varianceFactor = 4;
         const magnitudeMean = 64;
         const magnitudeStd = 10;
         const divisionMean = 0.5;
-        const divisionStd = 0.2;
+        const divisionStd = 0.25;
         const angleMean =
           ((ptIndex * 2 + 1) * 2 * Math.PI) / (originalPoints.length * 2);
-        const angleStd = 1;
+        const angleStd = 2;
 
         // calculate random value
         const magnitude =
           Math.abs(random.gaussian(magnitudeMean, magnitudeStd)) *
           edgeLength *
-          edgeLengthFactor;
+          edgeLengthFactor *
+          currentPoint.variance *
+          varianceFactor;
         const division = Math.abs(random.gaussian(divisionMean, divisionStd));
         const angle = Math.abs(random.gaussian(angleMean, angleStd));
 
@@ -65,34 +73,50 @@ const sketch = () => {
         const midPoint = [midU, midV];
 
         // add to new array
+        newPoints.push(currentPoint);
         newPoints.push({
-          position: [currentPoint.position[0], currentPoint.position[1]],
+          position: [midPoint[0], midPoint[1]],
+          variance: currentPoint.variance,
         });
-        newPoints.push({ position: [midPoint[0], midPoint[1]] });
       }
       return newPoints;
     };
 
-    const getBlob = (iterations) => {
-      let points = getPolygonPoints(10, width / 2, height / 2, 500);
-      for (i = 0; i < iterations; i++) {
-        points = warpPolygonPoints(points);
+    const getBlobPoints = (iterations, basePoints) => {
+      let points;
+      if (basePoints) {
+        points = basePoints;
+      } else {
+        points = getPolygonPoints(10, width / 2, height / 2, 500);
+      }
+      for (let i = 0; i < iterations; i++) {
+        points = getWarpedPolygonPoints(points);
       }
       return points;
     };
 
-    const blobPoints = getBlob(6);
+    const drawBlob = (points, opacity = 1) => {
+      context.beginPath();
+      points.forEach((point) => {
+        context.lineTo(point.position[0], point.position[1]);
+      });
 
-    context.beginPath();
-    blobPoints.forEach((point) => {
-      context.lineTo(point.position[0], point.position[1]);
-    });
+      context.closePath();
+      context.globalAlpha = opacity;
+      context.fillStyle = "#333333";
+      context.fill();
+    };
 
-    context.closePath();
-    //context.lineWidth = 15;
-    //context.stroke();
-    context.fillStyle = "#333333";
-    context.fill();
+    const drawDetails = (iterations, opacity) => {
+      for (let i = 0; i < iterations; i++) {
+        let details = getBlobPoints(3, baseBlobPoints);
+        drawBlob(details, opacity);
+      }
+    };
+
+    const baseBlobPoints = getBlobPoints(3);
+    drawBlob(baseBlobPoints);
+    drawDetails(50, 0.1);
   };
 };
 
