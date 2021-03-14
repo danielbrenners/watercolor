@@ -42,15 +42,15 @@ const sketch = () => {
         );
 
         // parameters
-        const edgeLengthFactor = 0.004;
-        const varianceFactor = 4;
-        const magnitudeMean = 64;
-        const magnitudeStd = 10;
-        const divisionMean = 0.5;
-        const divisionStd = 0.25;
+        const edgeLengthFactor = 0.0012; //.001 - .0012 cloudiness
+        const varianceFactor = 4; //2-4 circularity
+        const magnitudeMean = 256; // 128 -256 crispness
+        const magnitudeStd = 10; //10
+        const divisionMean = 0.5; //0.5
+        const divisionStd = 0.1; //.25
         const angleMean =
           ((ptIndex * 2 + 1) * 2 * Math.PI) / (originalPoints.length * 2);
-        const angleStd = 2;
+        const angleStd = 20000; // 2-2000 not much
 
         // calculate random value
         const magnitude =
@@ -82,15 +82,18 @@ const sketch = () => {
       return newPoints;
     };
 
-    const getBlobPoints = (iterations, basePoints) => {
-      let points;
-      if (basePoints) {
-        points = basePoints;
-      } else {
-        points = getPolygonPoints(10, width / 2, height / 2, 500);
-      }
+    const getBlobPoints = (n, x, y, size, iterations) => {
+      let points = getPolygonPoints(n, x, y, size);
       for (let i = 0; i < iterations; i++) {
         points = getWarpedPolygonPoints(points);
+      }
+      return points;
+    };
+
+    const getWarpedBlobPoints = (basePoints, iterations) => {
+      let points = basePoints;
+      for (let i = 0; i < iterations; i++) {
+        points = getWarpedPolygonPoints(basePoints);
       }
       return points;
     };
@@ -107,32 +110,58 @@ const sketch = () => {
       context.fill();
     };
 
-    const paintWatercolor = (
-      baseBlobPoints,
-      iterations,
-      fill,
-      detailOpacity
-    ) => {
-      drawBlob(baseBlobPoints, fill, 1);
-      for (let i = 0; i < iterations / 3; i++) {
-        let details = getBlobPoints(1, baseBlobPoints);
-        drawBlob(details, fill, detailOpacity);
+    const paintWatercolor = (blotches) => {
+      // draw main blobs for each blotch
+      // 3 iterations of deformation
+      for (let k = 0; k < blotches.length; k++) {
+        let points = getBlobPoints(
+          blotches[k].n,
+          blotches[k].x,
+          blotches[k].y,
+          blotches[k].size,
+          3
+        );
+        drawBlob(points, blotches[k].fill, 1);
+        // save blotch points for details later
+        blotches[k].points = points;
       }
-      for (let i = 0; i < iterations / 3; i++) {
-        let details = getBlobPoints(2, baseBlobPoints);
-        drawBlob(details, fill, detailOpacity);
-      }
-      for (let i = 0; i < iterations / 3; i++) {
-        let details = getBlobPoints(3, baseBlobPoints);
-        drawBlob(details, fill, detailOpacity);
+
+      for (let z = 0; z < 3; z++) {
+        // use 3 different values to ramp up deformation
+        for (let i = 0; i < 20; i++) {
+          // twenty times at each level of deformation
+          for (let k = 0; k < blotches.length; k++) {
+            // go through each color
+            for (let j = 0; j < 3; j++) {
+              // three layers before switching to next ecolor
+              let details = getWarpedBlobPoints(blotches[k].points, z + 1);
+              drawBlob(details, blotches[k].fill, blotches[k].detailOpacity);
+            }
+          }
+        }
       }
     };
 
-    let baseBlobPoints = getBlobPoints(3);
-    paintWatercolor(baseBlobPoints, 60, "red", 0.1);
-
-    baseBlobPoints = getBlobPoints(3);
-    paintWatercolor(baseBlobPoints, 60, "green", 0.1);
+    paintWatercolor([
+      {
+        iterations: 60,
+        fill: "red",
+        detailOpacity: 0.02,
+        n: 10,
+        x: 1000,
+        y: 1000,
+        size: 500,
+      },
+      {
+        iterations: 60,
+        fill: "blue",
+        detailOpacity: 0.02,
+        n: 10,
+        x: 1500,
+        y: 1500,
+        size: 500,
+      },
+    ]);
   };
 };
 
