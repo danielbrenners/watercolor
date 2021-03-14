@@ -105,6 +105,9 @@ const sketch = () => {
       });
 
       context.closePath();
+      context.globalAlpha = opacity > 0.05 ? 0.05 : opacity;
+
+      context.stroke();
       context.globalAlpha = opacity;
       context.fillStyle = fill;
       context.fill();
@@ -144,22 +147,29 @@ const sketch = () => {
 
     paintWatercolor([
       {
-        iterations: 60,
-        fill: "red",
+        fill: "#FAE298",
+        detailOpacity: 0.04,
+        n: 10,
+        x: 800,
+        y: 800,
+        size: 500,
+      },
+      {
+        fill: "#d3d3d3",
+        detailOpacity: 0.02,
+        n: 10,
+        x: 1300,
+        y: 1300,
+        size: 500,
+      },
+
+      {
+        fill: "#FAE298",
         detailOpacity: 0.02,
         n: 10,
         x: 1000,
         y: 1000,
-        size: 500,
-      },
-      {
-        iterations: 60,
-        fill: "blue",
-        detailOpacity: 0.02,
-        n: 10,
-        x: 1500,
-        y: 1500,
-        size: 500,
+        size: 300,
       },
     ]);
   };
