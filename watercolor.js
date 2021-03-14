@@ -95,7 +95,7 @@ const sketch = () => {
       return points;
     };
 
-    const drawBlob = (points, opacity = 1) => {
+    const drawBlob = (points, fill, opacity = 1) => {
       context.beginPath();
       points.forEach((point) => {
         context.lineTo(point.position[0], point.position[1]);
@@ -103,20 +103,36 @@ const sketch = () => {
 
       context.closePath();
       context.globalAlpha = opacity;
-      context.fillStyle = "#333333";
+      context.fillStyle = fill;
       context.fill();
     };
 
-    const drawDetails = (iterations, opacity) => {
-      for (let i = 0; i < iterations; i++) {
+    const paintWatercolor = (
+      baseBlobPoints,
+      iterations,
+      fill,
+      detailOpacity
+    ) => {
+      drawBlob(baseBlobPoints, fill, 1);
+      for (let i = 0; i < iterations / 3; i++) {
+        let details = getBlobPoints(1, baseBlobPoints);
+        drawBlob(details, fill, detailOpacity);
+      }
+      for (let i = 0; i < iterations / 3; i++) {
+        let details = getBlobPoints(2, baseBlobPoints);
+        drawBlob(details, fill, detailOpacity);
+      }
+      for (let i = 0; i < iterations / 3; i++) {
         let details = getBlobPoints(3, baseBlobPoints);
-        drawBlob(details, opacity);
+        drawBlob(details, fill, detailOpacity);
       }
     };
 
-    const baseBlobPoints = getBlobPoints(3);
-    drawBlob(baseBlobPoints);
-    drawDetails(50, 0.1);
+    let baseBlobPoints = getBlobPoints(3);
+    paintWatercolor(baseBlobPoints, 60, "red", 0.1);
+
+    baseBlobPoints = getBlobPoints(3);
+    paintWatercolor(baseBlobPoints, 60, "green", 0.1);
   };
 };
 
