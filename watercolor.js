@@ -4,10 +4,11 @@ const random = require("canvas-sketch-util/random");
 
 const settings = {
   dimensions: [2048, 2048],
+  animate: true,
 };
 
 const sketch = () => {
-  return ({ context, width, height }) => {
+  return ({ context, width, height, time, playhead, frame }) => {
     const getPolygonPoints = (n, x, y, size) => {
       let points = [];
       for (let ptIndex = 0; ptIndex < n; ptIndex++) {
@@ -107,7 +108,7 @@ const sketch = () => {
       context.closePath();
       context.globalAlpha = opacity > 0.05 ? 0.05 : opacity;
 
-      context.stroke();
+      // context.stroke();
       context.globalAlpha = opacity;
       context.fillStyle = fill;
       context.fill();
@@ -126,7 +127,8 @@ const sketch = () => {
         );
         drawBlob(points, blotches[k].fill, 1);
         // save blotch points for details later
-        blotches[k].points = points;
+        blotches[k].basePoints = points;
+        blotches[k].detailPoints = [];
       }
 
       for (let z = 0; z < 3; z++) {
@@ -137,15 +139,65 @@ const sketch = () => {
             // go through each color
             for (let j = 0; j < 3; j++) {
               // three layers before switching to next ecolor
-              let details = getWarpedBlobPoints(blotches[k].points, z + 1);
+              let details = getWarpedBlobPoints(blotches[k].basePoints, z + 1);
               drawBlob(details, blotches[k].fill, blotches[k].detailOpacity);
+              blotches[k].detailPoints.push(details);
+            }
+          }
+        }
+      }
+
+      return blotches;
+    };
+
+    const repaint = (blotchesData) => {
+      // draw main blobs for each blotch
+      // 3 iterations of deformation
+      for (let k = 0; k < blotchesData.length; k++) {
+        drawBlob(blotchesData[k].basePoints, blotchesData[k].fill, 1);
+      }
+
+      for (let m = 0; m < blotchesData[0].detailPoints.length / 3; m++) {
+        for (let k = 0; k < blotchesData.length; k++) {
+          for (let n = 0; n < 3; n++) {
+            const points = blotchesData[k].detailPoints[m * 3 + n];
+            /*
+            points.forEach((point) => {
+              point.position[0] += 1;
+              point.position[1] += 1;
+            });
+            */
+            drawBlob(
+              points,
+              blotchesData[k].fill,
+              blotchesData[k].detailOpacity
+            );
+          }
+        }
+      }
+
+      for (let z = 0; z < 3; z++) {
+        // use 3 different values to ramp up deformation
+        for (let i = 0; i < 20; i++) {
+          // twenty times at each level of deformation
+          for (let k = 0; k < blotchesData.length; k++) {
+            // go through each color
+            for (let j = 0; j < 3; j++) {
+              // three layers before switching to next ecolor
+              /*
+              drawBlob(
+                blotchesData[k].detailPoints,
+                blotchesData[k].fill,
+                blotchesData[k].detailOpacity
+              );
+              */
             }
           }
         }
       }
     };
 
-    paintWatercolor([
+    const blotchesData = paintWatercolor([
       {
         fill: "#FAE298",
         detailOpacity: 0.04,
@@ -172,6 +224,9 @@ const sketch = () => {
         size: 300,
       },
     ]);
+    context.clearRect(0, 0, width, height);
+
+    repaint(blotchesData);
   };
 };
 
