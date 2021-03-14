@@ -7,8 +7,13 @@ const settings = {
   animate: true,
 };
 
+const seed = random.getRandomSeed();
+
 const sketch = () => {
   return ({ context, width, height, time, playhead, frame }) => {
+    // set random seed
+    random.setSeed(seed);
+
     const getPolygonPoints = (n, x, y, size) => {
       let points = [];
       for (let ptIndex = 0; ptIndex < n; ptIndex++) {
@@ -154,48 +159,42 @@ const sketch = () => {
       // draw main blobs for each blotch
       // 3 iterations of deformation
       for (let k = 0; k < blotchesData.length; k++) {
-        drawBlob(blotchesData[k].basePoints, blotchesData[k].fill, 1);
+        const newPoints = blotchesData[k].basePoints.map((point) => {
+          const x = point.position[0];
+          const y = point.position[1];
+          return {
+            position: [x, y],
+            variance: point.variance,
+          };
+        });
+        drawBlob(newPoints, blotchesData[k].fill, 1);
       }
 
       for (let m = 0; m < blotchesData[0].detailPoints.length / 3; m++) {
         for (let k = 0; k < blotchesData.length; k++) {
           for (let n = 0; n < 3; n++) {
             const points = blotchesData[k].detailPoints[m * 3 + n];
-            /*
-            points.forEach((point) => {
-              point.position[0] += 1;
-              point.position[1] += 1;
+
+            const newPoints = points.map((point) => {
+              const x = point.position[0];
+              const y = point.position[1];
+              return {
+                position: [x, y],
+                variance: point.variance,
+              };
             });
-            */
+
             drawBlob(
-              points,
+              newPoints,
               blotchesData[k].fill,
               blotchesData[k].detailOpacity
             );
           }
         }
       }
-
-      for (let z = 0; z < 3; z++) {
-        // use 3 different values to ramp up deformation
-        for (let i = 0; i < 20; i++) {
-          // twenty times at each level of deformation
-          for (let k = 0; k < blotchesData.length; k++) {
-            // go through each color
-            for (let j = 0; j < 3; j++) {
-              // three layers before switching to next ecolor
-              /*
-              drawBlob(
-                blotchesData[k].detailPoints,
-                blotchesData[k].fill,
-                blotchesData[k].detailOpacity
-              );
-              */
-            }
-          }
-        }
-      }
     };
+
+    context.clearRect(0, 0, width, height);
 
     const blotchesData = paintWatercolor([
       {
@@ -205,7 +204,7 @@ const sketch = () => {
         x: 800,
         y: 800,
         size: 500,
-      },
+      } /*,
       {
         fill: "#d3d3d3",
         detailOpacity: 0.02,
@@ -222,11 +221,9 @@ const sketch = () => {
         x: 1000,
         y: 1000,
         size: 300,
-      },
+      },*/,
     ]);
-    context.clearRect(0, 0, width, height);
-
-    repaint(blotchesData);
+    // repaint(blotchesData);
   };
 };
 
