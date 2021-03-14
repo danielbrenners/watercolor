@@ -1,6 +1,7 @@
 const canvasSketch = require("canvas-sketch");
 const { lerp } = require("canvas-sketch-util/math");
 const random = require("canvas-sketch-util/random");
+const palettes = require("nice-color-palettes/1000.json");
 
 const settings = {
   dimensions: [2048, 2048],
@@ -48,15 +49,15 @@ const sketch = () => {
         );
 
         // parameters
-        const edgeLengthFactor = 0.0012; //.001 - .0012 cloudiness
-        const varianceFactor = 4; //2-4 circularity
-        const magnitudeMean = 256; // 128 -256 crispness
-        const magnitudeStd = 10; //10
-        const divisionMean = 0.5; //0.5
-        const divisionStd = 0.1; //.25
+        const edgeLengthFactor = 0.0012;
+        const varianceFactor = 2.5; //2-4 circularity
+        const magnitudeMean = 200; // 128 -256 crispness
+        const magnitudeStd = 10;
+        const divisionMean = 0.5;
+        const divisionStd = 0.1;
         const angleMean =
           ((ptIndex * 2 + 1) * 2 * Math.PI) / (originalPoints.length * 2);
-        const angleStd = 20000; // 2-2000 not much
+        const angleStd = 2000000;
 
         // calculate random value
         const magnitude =
@@ -113,7 +114,7 @@ const sketch = () => {
       context.closePath();
       context.globalAlpha = opacity > 0.05 ? 0.05 : opacity;
 
-      // context.stroke();
+      //();
       context.globalAlpha = opacity;
       context.fillStyle = fill;
       context.fill();
@@ -194,34 +195,29 @@ const sketch = () => {
       }
     };
 
+    // render
+    const numColors = 2;
+    const palette = random.shuffle(random.pick(palettes)).slice(0, numColors);
     context.clearRect(0, 0, width, height);
-
     const blotchesData = paintWatercolor([
       {
-        fill: "#FAE298",
+        // fill: "#333",
+        fill: palette[0],
         detailOpacity: 0.04,
         n: 10,
-        x: 800,
-        y: 800,
-        size: 500,
-      } /*,
-      {
-        fill: "#d3d3d3",
-        detailOpacity: 0.02,
-        n: 10,
-        x: 1300,
-        y: 1300,
+        x: 700,
+        y: height / 2,
         size: 500,
       },
-
       {
-        fill: "#FAE298",
-        detailOpacity: 0.02,
+        // fill: "#FFDE6A",
+        fill: palette[1],
+        detailOpacity: 0.04,
         n: 10,
-        x: 1000,
-        y: 1000,
-        size: 300,
-      },*/,
+        x: 1400,
+        y: height / 2,
+        size: 500,
+      },
     ]);
     // repaint(blotchesData);
   };
