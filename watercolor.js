@@ -10,8 +10,8 @@ const settings = {
 
 const seed = random.getRandomSeed();
 
-const nDetailLayers = 40; // 40 for stills, 8 for animation
-const mainLayerOpacity = 1; //.
+const nDetailLayers = 50; // 50 for stills, 8 for animation
+const mainLayerOpacity = 0.75; // .75-1
 const detailLayerOpacity = 0.05; // .1
 const animationCoefficient = 25; // 25
 const maxExpansionCoefficient = 50; // 50
@@ -19,13 +19,13 @@ const nSides = 10; // 8 - 10
 const hasStroke = false;
 const mainBlobIterations = 3; //3
 const angleStd = Math.PI;
-// angleMean is below, changers per point, is edgeNormal
+// angleMean is edgeNormal
 
 const edgeLengthFactor = 0.001; // .001
 const varianceFactor = 4; // 2 (circle) 4(abstract)
 const magnitudeMean = 400; // 100 (circle) 400 (abstract)
-const magnitudeStd = 10; /// 10 not obvious what this changes
-const divisionMean = 0.5; //.5
+const magnitudeStd = 0; /// 0
+// division mean is 0.5
 const divisionStd = 0.01; //0-.01
 
 const getPolygonPoints = (n, x, y, size) => {
@@ -78,7 +78,6 @@ const getWarpedPolygonPoints = (x, y, size, originalPoints) => {
 
     const edgeNormal = edgeAngle + Math.PI / 2;
     const edgeLength = Math.sqrt(edge[0] * edge[0] + edge[1] * edge[1]);
-    const angleMean = edgeNormal;
 
     /*
     if (ptIndex === 3) {
@@ -98,8 +97,8 @@ const getWarpedPolygonPoints = (x, y, size, originalPoints) => {
       edgeLengthFactor *
       currentPoint.variance *
       varianceFactor;
-    const division = Math.abs(random.gaussian(divisionMean, divisionStd));
-    const angle = Math.abs(random.gaussian(angleMean, angleStd));
+    const division = Math.abs(random.gaussian(0.5, divisionStd));
+    const angle = Math.abs(random.gaussian(edgeNormal, angleStd));
 
     // get new point
     const newX =
