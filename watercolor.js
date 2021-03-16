@@ -5,22 +5,25 @@ const palettes = require("nice-color-palettes/1000.json");
 
 const settings = {
   dimensions: [2048, 2048],
-  animate: true,
+  animate: false,
 };
 
 const seed = random.getRandomSeed();
 
-const nDetailLayers = 8; // 20 for stills, 8 for animation
-const mainLayerOpacity = 1; //.1
-const detailLayerOpacity = 0.1; // .1
+const nDetailLayers = 40; // 40 for stills, 8 for animation
+const mainLayerOpacity = 1; //.
+const detailLayerOpacity = 0.05; // .1
 const animationCoefficient = 25; // 25
 const maxExpansionCoefficient = 50; // 50
-const nSides = 8; // 8 - 10
+const nSides = 10; // 8 - 10
 const hasStroke = false;
+const mainBlobIterations = 3; //3
+const angleStd = Math.PI;
+// angleMean is below, changers per point, is edgeNormal
 
 const edgeLengthFactor = 0.001; // .001
 const varianceFactor = 4; // 2 (circle) 4(abstract)
-const magnitudeMean = 300; // 100 (circle) 400 (abstract)
+const magnitudeMean = 400; // 100 (circle) 400 (abstract)
 const magnitudeStd = 10; /// 10 not obvious what this changes
 const divisionMean = 0.5; //.5
 const divisionStd = 0.01; //0-.01
@@ -64,17 +67,29 @@ const getWarpedPolygonPoints = (x, y, size, originalPoints) => {
     // edge to bisect
     const edge = [
       nextPoint.position[0] - currentPoint.position[0],
-      nextPoint.position[1] - currentPoint.position[1],
+      (nextPoint.position[1] - currentPoint.position[1]) * -1,
     ];
-    const edgeUV = [edge[0] / size - x, edge[1] / size - y];
-    const edgeAngle = Math.atan(edgeUV[1] / edgeUV[0]);
+
+    const isOutsideArcTanRange = edge[0] < 0;
+
+    let edgeAngle = isOutsideArcTanRange
+      ? Math.atan(edge[1] / edge[0]) + Math.PI
+      : Math.atan(edge[1] / edge[0]);
+
     const edgeNormal = edgeAngle + Math.PI / 2;
     const edgeLength = Math.sqrt(edge[0] * edge[0] + edge[1] * edge[1]);
+    const angleMean = edgeNormal;
 
-    // parameters
-
-    const angleMean = edgeNormal; //((ptIndex * 2 + 1) * 2 * Math.PI) / (originalPoints.length * 2);
-    const angleStd = 100;
+    /*
+    if (ptIndex === 3) {
+      console.log(currentPoint.position);
+      console.log(nextPoint.position);
+      console.log(edge);
+      console.log("angle", edgeAngle);
+      console.log("normal", edgeNormal);
+      console.log("outside range", isOutsideArcTanRange);
+    }
+    */
 
     // calculate random value
     const magnitude =
@@ -133,7 +148,7 @@ const getWatercolorData = (blotches) => {
       blotches[k].x,
       blotches[k].y,
       blotches[k].size,
-      3
+      mainBlobIterations
     );
     // save blotch points for details later
     blotches[k].basePoints = points;
