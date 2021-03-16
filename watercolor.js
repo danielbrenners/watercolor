@@ -10,12 +10,12 @@ const settings = {
 
 const seed = random.getRandomSeed();
 
-const nDetailLayers = 50; // 50 for stills, 8 for animation
-const mainLayerOpacity = 0.75; // .75-1
-const detailLayerOpacity = 0.05; // .1
+const nDetailLayers = 100; // 50 (100?) for stills, 8 for animation
+const mainLayerOpacity = 0.55; // .75-1
+const detailLayerOpacity = 0.025; // .05 (.025?) for stills, .1 for animation
 const animationCoefficient = 25; // 25
 const maxExpansionCoefficient = 50; // 50
-const nSides = 10; // 8 - 10
+const nSides = 11; // 8 - 10
 const hasStroke = false;
 const mainBlobIterations = 3; //3
 const angleStd = Math.PI;
