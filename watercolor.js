@@ -5,7 +5,7 @@ const palettes = require("nice-color-palettes/1000.json");
 
 const settings = {
   dimensions: [2048, 2048],
-  animate: true,
+  //animate: true,
 };
 
 const seed = random.getRandomSeed();
@@ -13,6 +13,7 @@ const seed = random.getRandomSeed();
 const sketch = () => {
   return ({ context, width, height, time, playhead, frame }) => {
     // set random seed
+
     random.setSeed(seed);
 
     const getPolygonPoints = (n, x, y, size) => {
@@ -138,7 +139,7 @@ const sketch = () => {
       context.fill();
     };
 
-    const paintWatercolor = (blotches) => {
+    const getWatercolorData = (blotches) => {
       // draw main blobs for each blotch
       // 3 iterations of deformation
       for (let k = 0; k < blotches.length; k++) {
@@ -149,7 +150,7 @@ const sketch = () => {
           blotches[k].size,
           3
         );
-        drawBlob(points, blotches[k].fill, 1, blotches[k].stroke);
+        // drawBlob(points, blotches[k].fill, 1, blotches[k].stroke);
         // save blotch points for details later
         blotches[k].basePoints = points;
         blotches[k].detailPoints = [];
@@ -169,13 +170,14 @@ const sketch = () => {
                 blotches[k].size,
                 blotches[k].basePoints,
                 z + 1
-              );
+              ); /*
               drawBlob(
                 details,
                 blotches[k].fill,
                 blotches[k].detailOpacity,
                 blotches[k].stroke
               );
+              */
               blotches[k].detailPoints.push(details);
             }
           }
@@ -185,29 +187,21 @@ const sketch = () => {
       return blotches;
     };
 
-    const repaint = (blotchesData) => {
+    const paint = (blotchesData) => {
       // draw main blobs for each blotch
       // 3 iterations of deformation
       for (let k = 0; k < blotchesData.length; k++) {
         const newPoints = blotchesData[k].basePoints.map((point) => {
           if (point.variance < 0.25) {
-            const x =
-              point.position[0] -
-              time * point.variance * 1 * Math.cos(point.angle);
-            const y =
-              point.position[1] -
-              time * point.variance * 1 * Math.sin(point.angle);
+            const x = point.position[0]; // - time * point.variance * 1 * Math.cos(point.angle);
+            const y = point.position[1]; // - time * point.variance * 1 * Math.sin(point.angle);
             return {
               position: [x, y],
               variance: point.variance,
             };
           } else {
-            const x =
-              point.position[0] +
-              time * point.variance * 1 * Math.cos(point.angle);
-            const y =
-              point.position[1] +
-              time * point.variance * 1 * Math.sin(point.angle);
+            const x = point.position[0]; //+ time * point.variance * 1 * Math.cos(point.angle);
+            const y = point.position[1]; //+  time * point.variance * 1 * Math.sin(point.angle);
             return {
               position: [x, y],
               variance: point.variance,
@@ -217,18 +211,15 @@ const sketch = () => {
         drawBlob(newPoints, blotchesData[k].fill, 1, blotchesData[k].stroke);
       }
 
+      // details
       for (let m = 0; m < blotchesData[0].detailPoints.length / 3; m++) {
         for (let k = 0; k < blotchesData.length; k++) {
           for (let n = 0; n < 3; n++) {
             const points = blotchesData[k].detailPoints[m * 3 + n];
 
             const newPoints = points.map((point) => {
-              const x =
-                point.position[0] +
-                time * point.variance * 10 * Math.cos(point.angle);
-              const y =
-                point.position[1] +
-                time * point.variance * 10 * Math.sin(point.angle);
+              const x = point.position[0]; //+ time * point.variance * 10 * Math.cos(point.angle);
+              const y = point.position[1]; // +   time * point.variance * 10 * Math.sin(point.angle);
               return {
                 position: [x, y],
                 variance: point.variance,
@@ -252,7 +243,7 @@ const sketch = () => {
     context.clearRect(0, 0, width, height);
     // context.fillStyle = "white";
     // context.fillRect(0, 0, width, height);
-    const blotchesData = paintWatercolor([
+    const blotchesData = getWatercolorData([
       {
         fill: "#333",
         //fill: palette[0],
@@ -276,7 +267,7 @@ const sketch = () => {
     ]);
 
     // animate
-    repaint(blotchesData);
+    paint(blotchesData);
   };
 };
 
