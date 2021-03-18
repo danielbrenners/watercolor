@@ -8,6 +8,9 @@ const settings = {
   animate: false,
 };
 
+const numColors = 2;
+const palette = random.shuffle(random.pick(palettes)).slice(0, numColors);
+
 const seed = random.getRandomSeed();
 
 const nDetailLayers = 100; // 50 (100?) for stills, 8 for animation
@@ -179,8 +182,6 @@ const getWatercolorData = (blotches) => {
 };
 
 const sketch = () => {
-  const numColors = 2;
-  const palette = random.shuffle(random.pick(palettes)).slice(0, numColors);
   const blotchesData = getWatercolorData([
     {
       //fill: "#333",
@@ -188,7 +189,7 @@ const sketch = () => {
       detailOpacity: detailLayerOpacity,
       n: nSides,
       x: settings.dimensions[0] / 2 + 300,
-      y: settings.dimensions[1] / 2,
+      y: settings.dimensions[1] / 2 - 300,
       size: 500,
       stroke: hasStroke,
     },
@@ -198,7 +199,7 @@ const sketch = () => {
       detailOpacity: detailLayerOpacity,
       n: nSides,
       x: settings.dimensions[0] / 2 - 300,
-      y: settings.dimensions[1] / 2,
+      y: settings.dimensions[1] / 2 + 300,
       size: 500,
       stroke: hasStroke,
     },
@@ -297,6 +298,18 @@ const sketch = () => {
     // render
 
     context.clearRect(0, 0, width, height);
+    /*
+    let gradient = context.createLinearGradient(
+      0,
+      0,
+      0,
+      settings.dimensions[1]
+    );
+    gradient.addColorStop(0, palette[0]);
+    gradient.addColorStop(1, palette[1]);
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, settings.dimensions[0], settings.dimensions[1]);
+    */
     // context.fillStyle = "white";
     // context.fillRect(0, 0, width, height);
 
